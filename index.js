@@ -26,6 +26,14 @@ async function run() {
     // await client.connect();
 
     const taskCollection = client.db("taskDB").collection("tasks");
+    
+
+
+    app.get("/tasks", async (req, res) => {
+      const limit = parseInt(req.query.limit) || 0;
+        const result = await taskCollection.find().limit(limit).toArray();
+        res.send(result);
+    })
 
     app.post("/tasks", async (req, res) => {
         const task = req.body;
