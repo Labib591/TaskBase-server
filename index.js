@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-require('dotenv').config()
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+require("dotenv").config();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,7 +17,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -26,46 +26,56 @@ async function run() {
     // await client.connect();
 
     const taskCollection = client.db("taskDB").collection("tasks");
-    
-
 
     app.get("/tasks", async (req, res) => {
       const limit = parseInt(req.query.limit) || 0;
-        const result = await taskCollection.find().limit(limit).toArray();
-        res.send(result);
-    })
+      const result = await taskCollection
+        .find()
+        .sort({ deadline: 1 })
+        .limit(limit)
+        .toArray();
+      res.send(result);
+    });
 
     app.post("/tasks", async (req, res) => {
-        const task = req.body;
-        const result = await taskCollection.insertOne(task);
-        res.send(result);
-    })
+      const task = req.body;
+      const result = await taskCollection.insertOne(task);
+      res.send(result);
+    });
 
     app.delete("/tasks/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await taskCollection.deleteOne(query);
-        res.send(result);
-    })
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await taskCollection.deleteOne(query);
+      res.send(result);
+    });
 
     app.get("/tasks/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await taskCollection.findOne(query);
-        res.send(result);
-    })
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await taskCollection.findOne(query);
+      res.send(result);
+    });
 
     app.put("/tasks/:id", async (req, res) => {
-        const id = req.params.id;
-        const task = req.body;
-        const query = { _id: new ObjectId(id) };
-        const options = { upsert: true };
-        const updateDoc = {
-            $set: task,
-        };
-        const result = await taskCollection.updateOne(query, updateDoc, options);
-        res.send(result);
-    })
+      const id = req.params.id;
+      const task = req.body;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: task,
+      };
+      const result = await taskCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+
+    app.patch("/tasks/:id/bid", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const update = { $inc: { bids: 1 } };
+      const result = await taskCollection.updateOne(query, update);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
@@ -77,12 +87,10 @@ async function run() {
 }
 run().catch(console.dir);
 
-
 app.get("/", (req, res) => {
-    res.send("Tasks are getting ready!");
+  res.send("Tasks are getting ready!");
 });
 
 app.listen(port, () => {
-    // console.log(`Example app listening on port ${port}`);
+  // console.log(`Example app listening on port ${port}`);
 });
-
